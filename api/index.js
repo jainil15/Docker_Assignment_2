@@ -4,7 +4,7 @@ const authRoutes = require("./routes/auths.js");
 const userRoutes = require("./routes/users.js");
 const cookieParser = require("cookie-parser");
 const multer = require("multer");
-const fs = require("fs")
+const fs = require("fs");
 
 const app = express();
 app.use(express.json());
@@ -48,15 +48,15 @@ app.post("/api/upload", upload.single("file"), function (req, res) {
 app.get("/api/file/:filename", function (req, res) {
   const filename = req.params.filename;
   const filePath = `./uploads/${filename}`;
-  console.log(filename, filePath)
-  fs.readFile(filePath, function(err, data) {
+  console.log(filename, filePath);
+  fs.readFile(filePath, function (err, data) {
     if (err) {
       console.error(err);
-      return res.status(500).send('Error retrieving file');
+      return res.status(500).send("Error retrieving file");
     }
-    
-    res.setHeader('Content-Type', 'application/octet-stream');
-    res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
+
+    res.setHeader("Content-Type", "application/octet-stream");
+    res.setHeader("Content-Disposition", "attachment; filename=" + filename);
     res.send(data);
   });
 });
