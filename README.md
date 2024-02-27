@@ -1,4 +1,4 @@
-## api env variables:
+## api/.env variables:
 ```
 HOME=/
 MYSQL_DATABASE=syce1a
@@ -15,7 +15,7 @@ REACT_PORT=3000
 ```
 
 
-## docker-compose-app env variables:
+## docker-compose-app/.env variables:
 ```
 HOME=/
 MYSQL_DATABASE=syce1a
