@@ -1,0 +1,88 @@
+version: "3.0"
+services:
+  #mysql service
+  mysqldb:
+    image: mysql:8.0
+    container_name: mysqlcontainer
+    restart: unless-stopped
+    # creating volumes to keep the database data consistent and intializing the database with initial data
+    volumes:
+      - ./mydb.sql:/docker-entrypoint-initdb.d/0_init.sql
+      - $HOME/database:/var/lib/mysql
+    # exposing differenct port because port is already in use
+    ports:
+      - 3900:${MYSQL_PORT}
+    expose:
+      - ${MYSQL_PORT}
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysqldb
+    # using custom bridge network to isolate the containers
+    networks:
+      - internalnet
+
+  nodejsapi:
+    container_name: node-js-api
+    build: ../api/
+    image: jainilp12/nodejsapi:1.0
+    ports:
+      - 8800:${SERVER_PORT}
+    expose:
+      - ${SERVER_PORT}
+    environment:
+      DB_HOST: mysqldb
+      DB_PORT: ${MYSQL_PORT}
+      DB_NAME: ${MYSQL_DATABASE}
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+
+      SERVICE_TAGS: dev
+      SERVICE_NAME: nodejsapi
+      SERVER_PORT: ${SERVER_PORT}
+    networks:
+      - internalnet
+    depends_on:
+      - mysqldb
+      - redisdb
+
+  reactwebapp:
+    container_name: react-web-app-container
+    build: ../client/
+    image: jainilp12/reactwebapp:1.0
+    ports:
+      - 3000:${REACT_PORT}
+    expose:
+      - ${REACT_PORT}
+    environment:
+      SERVICE_TAGS: dev
+      SERVICE_NAME: reactwebapp
+    networks:
+      - internalnet
+    depends_on:
+      - nodejsapi
+
+  redisdb:
+    image: redis:latest
+    container_name: rediscontainer
+    restart: always
+    ports:
+      - 6379:${REDIS_PORT}
+    environment:
+      SERVICE_TAGS: dev
+      SERVICE_NAME: redisdb
+    volumes:
+      - ./cache:/data
+    networks:
+      - internalnet
+
+networks:
+  internalnet:
+    driver: bridge
